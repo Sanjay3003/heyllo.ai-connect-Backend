@@ -1,0 +1,29 @@
+# FastAPI Core
+fastapi
+uvicorn
+python-multipart
+
+# Database
+sqlalchemy
+alembic
+psycopg2-binary
+
+# Authentication & Security
+python-jose[cryptography]
+passlib[bcrypt]
+python-dotenv
+
+# Validation
+pydantic    
+pydantic-settings
+email-validator
+
+# WebSocket
+websockets
+
+# Utilities
+python-dateutil
+pytz
+
+# CORS
+fastapi-cors
