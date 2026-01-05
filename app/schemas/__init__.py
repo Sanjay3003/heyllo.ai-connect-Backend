@@ -38,6 +38,13 @@ from app.schemas.analytics import (
     OutcomeDistribution,
 )
 
+from app.schemas.ai_config import (
+    AIConfigBase,
+    AIConfigCreate,
+    AIConfigUpdate,
+    AIConfigResponse,
+)
+
 __all__ = [
     "UserRegister",
     "UserLogin",
@@ -62,4 +69,9 @@ __all__ = [
     "DashboardKPIs",
     "CallsOverTime",
     "OutcomeDistribution",
+    "AIConfigBase",
+    "AIConfigCreate",
+    "AIConfigUpdate",
+    "AIConfigResponse",
 ]
+

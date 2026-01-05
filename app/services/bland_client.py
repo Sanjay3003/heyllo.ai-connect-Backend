@@ -7,13 +7,15 @@ import httpx
 import os
 from typing import Optional, Dict, List, Any
 from datetime import datetime
+from app.config import settings
 
 class BlandAIClient:
     """Client for Bland AI API"""
     
     def __init__(self):
-        self.api_key = os.getenv("BLAND_AI_API_KEY", "")
-        self.base_url = os.getenv("BLAND_AI_BASE_URL", "https://api.bland.ai")
+        # Use settings from config (which loads from .env)
+        self.api_key = settings.BLAND_AI_API_KEY
+        self.base_url = settings.BLAND_AI_BASE_URL
         
         self.headers = {
             "authorization": self.api_key,
@@ -61,17 +63,17 @@ class BlandAIClient:
                 "Please add BLAND_AI_API_KEY to your .env file"
             )
         
+        # Build payload according to Bland AI API spec
+        # https://docs.bland.ai/api-v1/post/calls
         payload = {
             "phone_number": phone_number,
             "task": task,
-            "model": model,  # Use enhanced (GPT-4 level) model
             "voice": voice,
             "wait_for_greeting": wait_for_greeting,
             "record": record,
-            "max_duration": max_duration,
+            "max_duration": max_duration // 60 if max_duration > 60 else max_duration,  # API expects minutes
             "temperature": temperature,
-            "language": "en",
-            "amd": True,  # Answering machine detection
+            "language": "en-US",
         }
         
         if first_sentence:
@@ -90,7 +92,18 @@ class BlandAIClient:
                 json=payload,
                 timeout=30.0
             )
-            response.raise_for_status()
+            
+            # If error, try to get detailed error message
+            if response.status_code >= 400:
+                try:
+                    error_detail = response.json()
+                    error_msg = error_detail.get("message", error_detail.get("error", str(error_detail)))
+                    raise Exception(f"Bland AI Error: {error_msg}")
+                except Exception as e:
+                    if "Bland AI Error" in str(e):
+                        raise
+                    response.raise_for_status()
+            
             return response.json()
     
     async def get_call_details(self, call_id: str) -> Dict[str, Any]:
@@ -110,7 +123,24 @@ class BlandAIClient:
                 timeout=30.0
             )
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            
+            # Debug: Print what Bland AI returns
+            print(f"[BLAND AI DEBUG] Call {call_id} response keys: {list(data.keys())}")
+            print(f"[BLAND AI DEBUG] call_length: {data.get('call_length')}")
+            print(f"[BLAND AI DEBUG] status: {data.get('status')}")
+            print(f"[BLAND AI DEBUG] transcripts type: {type(data.get('transcripts'))}")
+            print(f"[BLAND AI DEBUG] transcript type: {type(data.get('transcript'))}")
+            
+            # Check different possible field names for transcript
+            if 'transcripts' in data:
+                print(f"[BLAND AI DEBUG] transcripts length: {len(data.get('transcripts', []))}")
+            if 'transcript' in data:
+                print(f"[BLAND AI DEBUG] transcript preview: {str(data.get('transcript', ''))[:200]}")
+            if 'concatenated_transcript' in data:
+                print(f"[BLAND AI DEBUG] concatenated_transcript preview: {str(data.get('concatenated_transcript', ''))[:200]}")
+            
+            return data
     
     async def list_calls(
         self,

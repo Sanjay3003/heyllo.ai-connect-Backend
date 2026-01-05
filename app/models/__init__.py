@@ -6,6 +6,7 @@ from app.models.user import User, Profile
 from app.models.lead import Lead
 from app.models.campaign import Campaign, CampaignLead
 from app.models.call import Call
+from app.models.ai_configuration import AIConfiguration
 
 __all__ = [
     "LeadStatus",
@@ -19,4 +20,6 @@ __all__ = [
     "Campaign",
     "CampaignLead",
     "Call",
+    "AIConfiguration",
 ]
+

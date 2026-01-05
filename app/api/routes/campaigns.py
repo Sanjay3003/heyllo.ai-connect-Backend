@@ -218,3 +218,155 @@ async def get_campaign_stats(
         conversion_rate=round(conversion_rate, 1),
         progress_percentage=round(progress_percentage, 1)
     )
+
+
+@router.post("/{campaign_id}/launch")
+async def launch_campaign(
+    campaign_id: UUID,
+    tenant_id: UUID = Depends(get_current_tenant_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Launch a campaign - queue AI calls for all leads in the campaign
+    
+    This endpoint will:
+    1. Get all leads in the campaign that haven't been called yet
+    2. Create pending call records for each
+    3. Set campaign status to 'active'
+    
+    Returns progress info and count of calls queued
+    """
+    from app.models.enums import CallStatus
+    from datetime import datetime
+    
+    # Get campaign
+    campaign = db.query(Campaign).filter(
+        Campaign.id == campaign_id,
+        Campaign.tenant_id == tenant_id
+    ).first()
+    
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    
+    # Get all leads in campaign
+    campaign_leads = db.query(CampaignLead).filter(
+        CampaignLead.campaign_id == campaign_id
+    ).all()
+    
+    if not campaign_leads:
+        raise HTTPException(
+            status_code=400, 
+            detail="No leads in campaign. Add leads before launching."
+        )
+    
+    # Get leads that haven't been called in this campaign
+    lead_ids = [cl.lead_id for cl in campaign_leads]
+    
+    # Find which leads already have calls for this campaign
+    called_lead_ids = db.query(Call.lead_id).filter(
+        Call.campaign_id == campaign_id,
+        Call.lead_id.in_(lead_ids)
+    ).distinct().all()
+    called_lead_ids = [lid[0] for lid in called_lead_ids]
+    
+    # Get uncalled leads
+    uncalled_lead_ids = [lid for lid in lead_ids if lid not in called_lead_ids]
+    
+    if not uncalled_lead_ids:
+        return {
+            "success": True,
+            "message": "All leads in campaign have already been called",
+            "total_leads": len(lead_ids),
+            "already_called": len(called_lead_ids),
+            "queued": 0
+        }
+    
+    # Get lead details for uncalled leads
+    uncalled_leads = db.query(Lead).filter(
+        Lead.id.in_(uncalled_lead_ids),
+        Lead.tenant_id == tenant_id
+    ).all()
+    
+    # Create pending call records for each uncalled lead
+    queued_count = 0
+    for lead in uncalled_leads:
+        call = Call(
+            tenant_id=tenant_id,
+            lead_id=lead.id,
+            campaign_id=campaign_id,
+            status=CallStatus.PENDING,
+            created_at=datetime.utcnow()
+        )
+        db.add(call)
+        queued_count += 1
+    
+    # Update campaign status to active
+    campaign.status = CampaignStatus.ACTIVE
+    
+    db.commit()
+    
+    return {
+        "success": True,
+        "message": f"Campaign launched! {queued_count} calls queued.",
+        "total_leads": len(lead_ids),
+        "already_called": len(called_lead_ids),
+        "queued": queued_count,
+        "campaign_status": "active"
+    }
+
+
+@router.post("/{campaign_id}/pause")
+async def pause_campaign(
+    campaign_id: UUID,
+    tenant_id: UUID = Depends(get_current_tenant_id),
+    db: Session = Depends(get_db),
+):
+    """Pause an active campaign"""
+    
+    campaign = db.query(Campaign).filter(
+        Campaign.id == campaign_id,
+        Campaign.tenant_id == tenant_id
+    ).first()
+    
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    
+    campaign.status = CampaignStatus.PAUSED
+    db.commit()
+    db.refresh(campaign)
+    
+    return {
+        "success": True,
+        "message": "Campaign paused",
+        "campaign_id": str(campaign_id),
+        "status": "paused"
+    }
+
+
+@router.post("/{campaign_id}/resume")
+async def resume_campaign(
+    campaign_id: UUID,
+    tenant_id: UUID = Depends(get_current_tenant_id),
+    db: Session = Depends(get_db),
+):
+    """Resume a paused campaign"""
+    
+    campaign = db.query(Campaign).filter(
+        Campaign.id == campaign_id,
+        Campaign.tenant_id == tenant_id
+    ).first()
+    
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    
+    campaign.status = CampaignStatus.ACTIVE
+    db.commit()
+    db.refresh(campaign)
+    
+    return {
+        "success": True,
+        "message": "Campaign resumed",
+        "campaign_id": str(campaign_id),
+        "status": "active"
+    }
+

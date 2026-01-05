@@ -23,3 +23,5 @@ class Tenant(Base):
     leads = relationship("Lead", back_populates="tenant")
     campaigns = relationship("Campaign", back_populates="tenant")
     calls = relationship("Call", back_populates="tenant")
+    ai_configuration = relationship("AIConfiguration", back_populates="tenant", uselist=False)
+

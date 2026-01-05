@@ -67,7 +67,7 @@ async def get_leads(
 
 @router.get("/{lead_id}", response_model=LeadResponse)
 async def get_lead(
-    lead_id: UUID,
+    lead_id: str,
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: Session = Depends(get_db),
 ):
@@ -75,7 +75,7 @@ async def get_lead(
     
     lead = db.query(Lead).filter(
         Lead.id == lead_id,
-        Lead.tenant_id == tenant_id
+        Lead.tenant_id == str(tenant_id)
     ).first()
     
     if not lead:
@@ -179,7 +179,7 @@ async def delete_lead(
 
 @router.get("/{lead_id}/calls", response_model=list[CallResponse])
 async def get_lead_calls(
-    lead_id: UUID,
+    lead_id: str,
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: Session = Depends(get_db),
 ):
@@ -188,7 +188,7 @@ async def get_lead_calls(
     # Verify lead exists and belongs to tenant
     lead = db.query(Lead).filter(
         Lead.id == lead_id,
-        Lead.tenant_id == tenant_id
+        Lead.tenant_id == str(tenant_id)
     ).first()
     
     if not lead:
