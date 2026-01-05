@@ -91,7 +91,14 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
     
     # Get tenant ID
     profile = db.query(Profile).filter(Profile.user_id == user.id).first()
-    tenant_id = str(profile.tenant_id) if profile else None
+    
+    if not profile or not profile.tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account not properly configured. Please contact support."
+        )
+    
+    tenant_id = str(profile.tenant_id)
     
     # Generate tokens
     token_data = {

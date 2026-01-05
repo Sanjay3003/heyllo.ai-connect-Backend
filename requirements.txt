@@ -6,12 +6,15 @@ python-multipart
 # Database
 sqlalchemy
 alembic
-psycopg2-binary
+pymysql
+cryptography
 
 # Authentication & Security
-python-jose[cryptography]
-passlib[bcrypt]
+python-jose
+python-multipart
+bcrypt
 python-dotenv
+httpx
 
 # Validation
 pydantic    

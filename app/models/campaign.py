@@ -1,7 +1,6 @@
 """Campaign models"""
 
 from sqlalchemy import Column, String, DateTime, ForeignKey, Date, Enum as SQLEnum
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
@@ -14,11 +13,11 @@ class Campaign(Base):
     """Campaign model"""
     __tablename__ = "campaigns"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=False, index=True)
     
     # Campaign Details
-    name = Column(String, nullable=False)
+    name = Column(String(255), nullable=False)
     status = Column(SQLEnum(CampaignStatus), default=CampaignStatus.DRAFT, nullable=False, index=True)
     start_date = Column(Date)
     end_date = Column(Date)
@@ -37,8 +36,8 @@ class CampaignLead(Base):
     """Junction table for Campaign-Lead many-to-many relationship"""
     __tablename__ = "campaign_leads"
     
-    campaign_id = Column(UUID(as_uuid=True), ForeignKey("campaigns.id"), primary_key=True)
-    lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id"), primary_key=True)
+    campaign_id = Column(String(36), ForeignKey("campaigns.id"), primary_key=True)
+    lead_id = Column(String(36), ForeignKey("leads.id"), primary_key=True)
     added_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relationships

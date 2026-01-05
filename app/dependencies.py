@@ -44,12 +44,13 @@ async def get_current_user(
     if payload is None:
         raise credentials_exception
     
+    # Get user_id from token (stored as string)
     user_id: str = payload.get("user_id")
     if user_id is None:
         raise credentials_exception
     
-    # Get user from database
-    user = db.query(User).filter(User.id == UUID(user_id)).first()
+    # Get user from database (id is already a string in MySQL)
+    user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise credentials_exception
     
@@ -65,7 +66,7 @@ async def get_current_user(
 async def get_current_tenant_id(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-) -> UUID:
+) -> str:
     """
     Get the tenant ID for the current user.
     
@@ -74,17 +75,26 @@ async def get_current_tenant_id(
         db: Database session
         
     Returns:
-        The tenant UUID
+        The tenant ID (as string)
         
     Raises:
         HTTPException: If user has no tenant
     """
+    # Debug: Print user info
+    print(f"DEBUG: Looking up tenant for user_id={current_user.id}, email={current_user.email}")
+    
     profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
+    
+    # Debug: Print profile status
+    if profile:
+        print(f"DEBUG: Found profile with tenant_id={profile.tenant_id}")
+    else:
+        print(f"DEBUG: No profile found for user_id={current_user.id}")
     
     if not profile or not profile.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="User has no tenant assigned"
+            detail=f"No tenant assigned. Please contact support. (User: {current_user.email})"
         )
     
     return profile.tenant_id

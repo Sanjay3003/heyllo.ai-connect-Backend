@@ -1,7 +1,6 @@
 """Lead model"""
 
 from sqlalchemy import Column, String, DateTime, ForeignKey, Enum as SQLEnum
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
@@ -14,15 +13,15 @@ class Lead(Base):
     """Lead/Contact model"""
     __tablename__ = "leads"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), nullable=False, index=True)
     
     # Contact Information
-    first_name = Column(String)
-    last_name = Column(String)
-    email = Column(String, index=True)
-    phone = Column(String, nullable=False, index=True)
-    company = Column(String)
+    first_name = Column(String(100))
+    last_name = Column(String(100))
+    email = Column(String(255), index=True)
+    phone = Column(String(50), nullable=False, index=True)
+    company = Column(String(255))
     
     # Status
     status = Column(SQLEnum(LeadStatus), default=LeadStatus.NEW, nullable=False, index=True)
