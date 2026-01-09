@@ -24,7 +24,7 @@ async def get_campaigns(
 ):
     """Get all campaigns for the tenant"""
     
-    query = db.query(Campaign).filter(Campaign.tenant_id == tenant_id)
+    query = db.query(Campaign).filter(Campaign.tenant_id == str(tenant_id))
     
     if status_filter:
         query = query.filter(Campaign.status == status_filter)
@@ -46,8 +46,8 @@ async def get_campaign(
     """Get a single campaign"""
     
     campaign = db.query(Campaign).filter(
-        Campaign.id == campaign_id,
-        Campaign.tenant_id == tenant_id
+        Campaign.id == str(campaign_id),
+        Campaign.tenant_id == str(tenant_id)
     ).first()
     
     if not campaign:
@@ -78,8 +78,8 @@ async def create_campaign(
         for lead_id in campaign_data.lead_ids:
             # Verify lead belongs to tenant
             lead = db.query(Lead).filter(
-                Lead.id == lead_id,
-                Lead.tenant_id == tenant_id
+                Lead.id == str(lead_id),
+                Lead.tenant_id == str(tenant_id)
             ).first()
             
             if lead:
@@ -105,8 +105,8 @@ async def update_campaign(
     """Update a campaign"""
     
     campaign = db.query(Campaign).filter(
-        Campaign.id == campaign_id,
-        Campaign.tenant_id == tenant_id
+        Campaign.id == str(campaign_id),
+        Campaign.tenant_id == str(tenant_id)
     ).first()
     
     if not campaign:
@@ -132,8 +132,8 @@ async def update_campaign_status(
     """Update campaign status"""
     
     campaign = db.query(Campaign).filter(
-        Campaign.id == campaign_id,
-        Campaign.tenant_id == tenant_id
+        Campaign.id == str(campaign_id),
+        Campaign.tenant_id == str(tenant_id)
     ).first()
     
     if not campaign:
@@ -155,8 +155,8 @@ async def delete_campaign(
     """Delete a campaign"""
     
     campaign = db.query(Campaign).filter(
-        Campaign.id == campaign_id,
-        Campaign.tenant_id == tenant_id
+        Campaign.id == str(campaign_id),
+        Campaign.tenant_id == str(tenant_id)
     ).first()
     
     if not campaign:
@@ -177,8 +177,8 @@ async def get_campaign_stats(
     """Get campaign statistics"""
     
     campaign = db.query(Campaign).filter(
-        Campaign.id == campaign_id,
-        Campaign.tenant_id == tenant_id
+        Campaign.id == str(campaign_id),
+        Campaign.tenant_id == str(tenant_id)
     ).first()
     
     if not campaign:
@@ -186,23 +186,23 @@ async def get_campaign_stats(
     
     # Count total leads in campaign
     total_leads = db.query(CampaignLead).filter(
-        CampaignLead.campaign_id == campaign_id
+        CampaignLead.campaign_id == str(campaign_id)
     ).count()
     
     # Count calls made
     called = db.query(Call).filter(
-        Call.campaign_id == campaign_id
+        Call.campaign_id == str(campaign_id)
     ).count()
     
     # Count answered calls (not pending or failed)
     answered = db.query(Call).filter(
-        Call.campaign_id == campaign_id,
+        Call.campaign_id == str(campaign_id),
         Call.status == "completed"
     ).count()
     
     # Count interested leads
     interested = db.query(Call).filter(
-        Call.campaign_id == campaign_id,
+        Call.campaign_id == str(campaign_id),
         Call.outcome == CallOutcome.INTERESTED
     ).count()
     
@@ -241,8 +241,8 @@ async def launch_campaign(
     
     # Get campaign
     campaign = db.query(Campaign).filter(
-        Campaign.id == campaign_id,
-        Campaign.tenant_id == tenant_id
+        Campaign.id == str(campaign_id),
+        Campaign.tenant_id == str(tenant_id)
     ).first()
     
     if not campaign:
@@ -250,7 +250,7 @@ async def launch_campaign(
     
     # Get all leads in campaign
     campaign_leads = db.query(CampaignLead).filter(
-        CampaignLead.campaign_id == campaign_id
+        CampaignLead.campaign_id == str(campaign_id)
     ).all()
     
     if not campaign_leads:
@@ -264,7 +264,7 @@ async def launch_campaign(
     
     # Find which leads already have calls for this campaign
     called_lead_ids = db.query(Call.lead_id).filter(
-        Call.campaign_id == campaign_id,
+        Call.campaign_id == str(campaign_id),
         Call.lead_id.in_(lead_ids)
     ).distinct().all()
     called_lead_ids = [lid[0] for lid in called_lead_ids]
@@ -284,7 +284,7 @@ async def launch_campaign(
     # Get lead details for uncalled leads
     uncalled_leads = db.query(Lead).filter(
         Lead.id.in_(uncalled_lead_ids),
-        Lead.tenant_id == tenant_id
+        Lead.tenant_id == str(tenant_id)
     ).all()
     
     # Create pending call records for each uncalled lead
@@ -324,8 +324,8 @@ async def pause_campaign(
     """Pause an active campaign"""
     
     campaign = db.query(Campaign).filter(
-        Campaign.id == campaign_id,
-        Campaign.tenant_id == tenant_id
+        Campaign.id == str(campaign_id),
+        Campaign.tenant_id == str(tenant_id)
     ).first()
     
     if not campaign:
@@ -352,8 +352,8 @@ async def resume_campaign(
     """Resume a paused campaign"""
     
     campaign = db.query(Campaign).filter(
-        Campaign.id == campaign_id,
-        Campaign.tenant_id == tenant_id
+        Campaign.id == str(campaign_id),
+        Campaign.tenant_id == str(tenant_id)
     ).first()
     
     if not campaign:

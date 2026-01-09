@@ -32,7 +32,7 @@ async def get_leads(
     """Get all leads for the tenant"""
     
     # Base query
-    query = db.query(Lead).filter(Lead.tenant_id == tenant_id)
+    query = db.query(Lead).filter(Lead.tenant_id == str(tenant_id))
     
     # Apply filters
     if status_filter:
@@ -74,7 +74,7 @@ async def get_lead(
     """Get a single lead"""
     
     lead = db.query(Lead).filter(
-        Lead.id == lead_id,
+        Lead.id == str(lead_id),
         Lead.tenant_id == str(tenant_id)
     ).first()
     
@@ -113,8 +113,8 @@ async def update_lead(
     """Update a lead"""
     
     lead = db.query(Lead).filter(
-        Lead.id == lead_id,
-        Lead.tenant_id == tenant_id
+        Lead.id == str(lead_id),
+        Lead.tenant_id == str(tenant_id)
     ).first()
     
     if not lead:
@@ -141,8 +141,8 @@ async def update_lead_status(
     """Update lead status only"""
     
     lead = db.query(Lead).filter(
-        Lead.id == lead_id,
-        Lead.tenant_id == tenant_id
+        Lead.id == str(lead_id),
+        Lead.tenant_id == str(tenant_id)
     ).first()
     
     if not lead:
@@ -164,8 +164,8 @@ async def delete_lead(
     """Delete a lead"""
     
     lead = db.query(Lead).filter(
-        Lead.id == lead_id,
-        Lead.tenant_id == tenant_id
+        Lead.id == str(lead_id),
+        Lead.tenant_id == str(tenant_id)
     ).first()
     
     if not lead:
@@ -187,14 +187,14 @@ async def get_lead_calls(
     
     # Verify lead exists and belongs to tenant
     lead = db.query(Lead).filter(
-        Lead.id == lead_id,
+        Lead.id == str(lead_id),
         Lead.tenant_id == str(tenant_id)
     ).first()
     
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     
-    calls = db.query(Call).filter(Call.lead_id == lead_id).order_by(Call.created_at.desc()).all()
+    calls = db.query(Call).filter(Call.lead_id == str(lead_id)).order_by(Call.created_at.desc()).all()
     
     return [CallResponse.from_orm(call) for call in calls]
 
@@ -257,7 +257,7 @@ async def export_leads_csv(
     """Export leads to CSV"""
     
     # Query leads
-    query = db.query(Lead).filter(Lead.tenant_id == tenant_id)
+    query = db.query(Lead).filter(Lead.tenant_id == str(tenant_id))
     
     if status_filter:
         query = query.filter(Lead.status == status_filter)

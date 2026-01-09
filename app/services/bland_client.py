@@ -258,26 +258,26 @@ class BlandAIClient:
         else:
             return "neutral"
     
-    def calculate_cost(self, call_length_seconds: int, voice: str = "nat") -> float:
+    def calculate_cost(self, call_length_seconds: int, voice: str = "nat") -> int:
         """
-        Calculate cost of a call
+        Calculate cost of a call in cents
         
         Args:
             call_length_seconds: Duration in seconds
             voice: Voice used
             
         Returns:
-            Cost in USD
+            Cost in cents (Integer)
         """
-        # Bland AI pricing (approximate)
-        rate_per_minute = 0.09  # Standard rate
+        # Bland AI pricing (cents per minute)
+        rate_per_minute = 9  # Standard rate
         
         # Premium voices cost more
         if voice in ["paige", "june"]:
-            rate_per_minute = 0.12
+            rate_per_minute = 12
         
         minutes = call_length_seconds / 60
-        return round(minutes * rate_per_minute, 2)
+        return int(minutes * rate_per_minute)
 
 
 # Global client instance

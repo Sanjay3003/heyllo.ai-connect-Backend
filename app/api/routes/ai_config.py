@@ -22,7 +22,7 @@ async def get_ai_config(
     """Get AI configuration for the current tenant"""
     
     config = db.query(AIConfiguration).filter(
-        AIConfiguration.tenant_id == tenant_id
+        AIConfiguration.tenant_id == str(tenant_id)
     ).first()
     
     if not config:
@@ -63,7 +63,7 @@ async def create_ai_config(
     
     # Check if config already exists
     existing = db.query(AIConfiguration).filter(
-        AIConfiguration.tenant_id == tenant_id
+        AIConfiguration.tenant_id == str(tenant_id)
     ).first()
     
     if existing:
@@ -93,7 +93,7 @@ async def update_ai_config(
     """Update AI configuration"""
     
     config = db.query(AIConfiguration).filter(
-        AIConfiguration.tenant_id == tenant_id
+        AIConfiguration.tenant_id == str(tenant_id)
     ).first()
     
     if not config:
@@ -125,7 +125,7 @@ async def replace_ai_config(
     """Replace entire AI configuration"""
     
     config = db.query(AIConfiguration).filter(
-        AIConfiguration.tenant_id == tenant_id
+        AIConfiguration.tenant_id == str(tenant_id)
     ).first()
     
     if not config:
@@ -155,7 +155,7 @@ async def delete_ai_config(
     """Delete AI configuration (resets to defaults)"""
     
     config = db.query(AIConfiguration).filter(
-        AIConfiguration.tenant_id == tenant_id
+        AIConfiguration.tenant_id == str(tenant_id)
     ).first()
     
     if config:

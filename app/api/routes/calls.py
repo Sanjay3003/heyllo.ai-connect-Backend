@@ -32,7 +32,7 @@ async def get_calls(
 ):
     """Get all calls with optional filters"""
     
-    query = db.query(Call).filter(Call.tenant_id == tenant_id)
+    query = db.query(Call).filter(Call.tenant_id == str(tenant_id))
     
     if status_filter:
         query = query.filter(Call.status == status_filter)
@@ -41,10 +41,10 @@ async def get_calls(
         query = query.filter(Call.outcome == outcome_filter)
     
     if campaign_id:
-        query = query.filter(Call.campaign_id == campaign_id)
+        query = query.filter(Call.campaign_id == str(campaign_id))
     
     if lead_id:
-        query = query.filter(Call.lead_id == lead_id)
+        query = query.filter(Call.lead_id == str(lead_id))
     
     calls = query.order_by(Call.created_at.desc()).all()
     
@@ -59,7 +59,7 @@ async def get_active_calls(
     """Get currently active calls"""
     
     calls = db.query(Call).filter(
-        Call.tenant_id == tenant_id,
+        Call.tenant_id == str(tenant_id),
         Call.status.in_([CallStatus.IN_PROGRESS, CallStatus.RINGING])
     ).all()
     
@@ -74,7 +74,7 @@ async def get_queued_calls(
     """Get pending/queued calls"""
     
     calls = db.query(Call).filter(
-        Call.tenant_id == tenant_id,
+        Call.tenant_id == str(tenant_id),
         Call.status == CallStatus.PENDING
     ).order_by(Call.created_at).all()
     
@@ -96,24 +96,24 @@ async def get_call_stats(
     
     # Base query for date range
     base_query = db.query(Call).filter(
-        Call.tenant_id == tenant_id,
+        Call.tenant_id == str(tenant_id),
         Call.created_at >= start_date
     )
     
     total_calls = base_query.count()
     
     active_calls = db.query(Call).filter(
-        Call.tenant_id == tenant_id,
+        Call.tenant_id == str(tenant_id),
         Call.status == CallStatus.IN_PROGRESS
     ).count()
     
     ringing = db.query(Call).filter(
-        Call.tenant_id == tenant_id,
+        Call.tenant_id == str(tenant_id),
         Call.status == CallStatus.RINGING
     ).count()
     
     queued = db.query(Call).filter(
-        Call.tenant_id == tenant_id,
+        Call.tenant_id == str(tenant_id),
         Call.status == CallStatus.PENDING
     ).count()
     
@@ -155,8 +155,8 @@ async def get_call(
     """Get a single call"""
     
     call = db.query(Call).filter(
-        Call.id == call_id,
-        Call.tenant_id == tenant_id
+        Call.id == str(call_id),
+        Call.tenant_id == str(tenant_id)
     ).first()
     
     if not call:
@@ -178,8 +178,8 @@ async def sync_call_from_bland(
     """
     
     call = db.query(Call).filter(
-        Call.id == call_id,
-        Call.tenant_id == tenant_id
+        Call.id == str(call_id),
+        Call.tenant_id == str(tenant_id)
     ).first()
     
     if not call:
@@ -272,7 +272,7 @@ async def sync_all_pending_calls(
     
     # Find calls with external IDs but no outcome
     pending_calls = db.query(Call).filter(
-        Call.tenant_id == tenant_id,
+        Call.tenant_id == str(tenant_id),
         Call.external_call_id.isnot(None),
         Call.outcome == None
     ).all()
@@ -349,7 +349,7 @@ async def initiate_ai_call(
     # Get lead
     lead = db.query(Lead).filter(
         Lead.id == request.lead_id,
-        Lead.tenant_id == tenant_id
+        Lead.tenant_id == str(tenant_id)
     ).first()
     
     if not lead:
@@ -360,7 +360,7 @@ async def initiate_ai_call(
     if request.campaign_id:
         campaign = db.query(Campaign).filter(
             Campaign.id == request.campaign_id,
-            Campaign.tenant_id == tenant_id
+            Campaign.tenant_id == str(tenant_id)
         ).first()
     
     # Format phone number to E.164 format for Bland AI
@@ -507,7 +507,7 @@ async def create_call(
     # Verify lead belongs to tenant
     lead = db.query(Lead).filter(
         Lead.id == call_data.lead_id,
-        Lead.tenant_id == tenant_id
+        Lead.tenant_id == str(tenant_id)
     ).first()
     
     if not lead:
@@ -538,8 +538,8 @@ async def update_call_status(
     """Update call status and outcome"""
     
     call = db.query(Call).filter(
-        Call.id == call_id,
-        Call.tenant_id == tenant_id
+        Call.id == str(call_id),
+        Call.tenant_id == str(tenant_id)
     ).first()
     
     if not call:
@@ -579,7 +579,7 @@ async def bland_webhook_handler(
         return {"status": "ignored", "reason": "no call_id"}
     
     # Find call in database
-    call = db.query(Call).filter(Call.external_call_id == call_id).first()
+    call = db.query(Call).filter(Call.external_call_id == str(call_id)).first()
     
     if not call:
         return {"status": "ignored", "reason": "call not found"}

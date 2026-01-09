@@ -37,7 +37,7 @@ async def get_dashboard_kpis(
     
     # Current period stats
     current_calls = db.query(Call).filter(
-        Call.tenant_id == tenant_id,
+        Call.tenant_id == str(tenant_id),
         Call.created_at >= current_start
     )
     
@@ -61,13 +61,13 @@ async def get_dashboard_kpis(
     
     # Previous period for trends
     previous_calls = db.query(Call).filter(
-        Call.tenant_id == tenant_id,
+        Call.tenant_id == str(tenant_id),
         Call.created_at >= previous_start,
         Call.created_at < current_start
     ).count()
     
     previous_completed = db.query(Call).filter(
-        Call.tenant_id == tenant_id,
+        Call.tenant_id == str(tenant_id),
         Call.created_at >= previous_start,
         Call.created_at < current_start,
         Call.status == CallStatus.COMPLETED
@@ -109,7 +109,7 @@ async def get_calls_overtime(
         day_end = day_start + timedelta(days=1)
         
         day_calls = db.query(Call).filter(
-            Call.tenant_id == tenant_id,
+            Call.tenant_id == str(tenant_id),
             Call.created_at >= day_start,
             Call.created_at < day_end
         )
@@ -142,7 +142,7 @@ async def get_outcome_distribution(
     
     # Get total completed calls
     total_calls = db.query(Call).filter(
-        Call.tenant_id == tenant_id,
+        Call.tenant_id == str(tenant_id),
         Call.created_at >= start_date,
         Call.status == CallStatus.COMPLETED
     ).count()
@@ -152,7 +152,7 @@ async def get_outcome_distribution(
         Call.outcome,
         func.count(Call.id).label('count')
     ).filter(
-        Call.tenant_id == tenant_id,
+        Call.tenant_id == str(tenant_id),
         Call.created_at >= start_date,
         Call.status == CallStatus.COMPLETED,
         Call.outcome.isnot(None)
@@ -178,7 +178,7 @@ async def get_campaigns_performance(
     """Get campaign performance metrics"""
     
     campaigns = db.query(Campaign).filter(
-        Campaign.tenant_id == tenant_id
+        Campaign.tenant_id == str(tenant_id)
     ).all()
     
     results = []

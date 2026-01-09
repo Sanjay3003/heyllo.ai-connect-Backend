@@ -1,6 +1,6 @@
 """Lead model"""
 
-from sqlalchemy import Column, String, DateTime, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, String, DateTime, ForeignKey, Enum as SQLEnum, Text
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
@@ -25,6 +25,9 @@ class Lead(Base):
     
     # Status
     status = Column(SQLEnum(LeadStatus), default=LeadStatus.NEW, nullable=False, index=True)
+    
+    # Notes (auto-updated from AI calls)
+    notes = Column(Text, nullable=True)
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

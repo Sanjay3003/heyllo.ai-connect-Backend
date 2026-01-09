@@ -39,6 +39,13 @@ class CallResponse(CallBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     
+    # Bland AI Integration
+    external_call_id: Optional[str] = None
+    sentiment: Optional[str] = None
+    transcript: Optional[str] = None
+    recording_url: Optional[str] = None
+    cost: Optional[int] = 0
+    
     class Config:
         from_attributes = True
 
